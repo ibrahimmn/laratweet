@@ -23,4 +23,7 @@ Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name
 
 // Route::get('/{username}', 'profileController@show');
 Route::get('/{username}', 'App\Http\Controllers\profileController@show', ['except' => ['create', 'edit']]);
-
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/follows/{username}', 'App\Http\Controllers\UserController@follows');
+    Route::get('/unfollows/{username}', 'App\Http\Controllers\UserController@unfollows');
+});
