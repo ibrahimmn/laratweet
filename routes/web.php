@@ -21,4 +21,6 @@ Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
-Route::get('/{username}', 'profileController@show');
+// Route::get('/{username}', 'profileController@show');
+Route::get('/{username}', 'App\Http\Controllers\profileController@show', ['except' => ['create', 'edit']]);
+

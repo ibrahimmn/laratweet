@@ -10,7 +10,10 @@ class profileController extends Controller
     //
     public function show($username)
 {
-     $user = User::where('username', $username)->firstOrFail();
-return view('profile', ['user' => $user]);
+ //    $user = User::where('username', $username)->firstOrFail();
+//return view('profile', ['user' => $user]);
+
+return view('profile', ['username' => $username]);
 }
+
 }
