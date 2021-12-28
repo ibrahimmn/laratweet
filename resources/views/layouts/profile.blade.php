@@ -7,13 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta id="token" name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Laravel') }}</title>
 
     <!-- Styles -->
     <link href="/css/app.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
     <!-- Scripts -->
     <script>
         window.Laravel = <?php echo json_encode([
@@ -100,33 +100,39 @@
 
             <div class="col-md-8">
               <ul class="nav navbar-nav">
-                <li class="active">
-                    <a href="#" class="text-center">
+                <li class="{{ !Route::currentRouteNamed('profile') ?: 'active' }}">
+                    <a href="{{ url('/' . $user->username) }}" class="text-center">
                         <div class="text-uppercase">Tweets</div>
                         <div>0</div>
                     </a>
                 </li>
-                <li>
-                    <a href="#" class="text-center">
+                @if ($is_edit_profile)
+                <li class="{{ !Route::currentRouteNamed('following') ?: 'active' }}">
+                    <a href="{{ url('/following') }}" class="text-center">
                         <div class="text-uppercase">Following</div>
-                        <div>0</div>
+                        <div>{{ $following_count }}</div>
                     </a>
                 </li>
-                <li>
-                    <a href="#" class="text-center">
+                @endif
+                <li class="{{ !Route::currentRouteNamed('followers') ?: 'active' }}">
+                    <a href="{{ url('/' . $user->username . '/followers') }}" class="text-center">
                         <div class="text-uppercase">Followers</div>
-                        <div>0</div>
+                        <div>{{ $followers_count }}</div>
                     </a>
                 </li>
               </ul>
               </div>
 
             <div class="col-md-2">
-                @if (Auth::check())
+            @if (Auth::check())
+                @if ($is_edit_profile)
                 <a href="#" class="navbar-btn navbar-right">
                     <button type="button" class="btn btn-default">Edit Profile</button>
                 </a>
+                @else
+                <button type="button" v-on:click="follows" class="navbar-btn navbar-right btn btn-default">@{{ followBtnText }}</button>
                 @endif
+            @endif
             </div>
           </div>
         </nav>
@@ -135,6 +141,50 @@
     </div>
 
     <!-- Scripts -->
-    <script src="/js/app.js"></script>
+
+    <script src="https://unpkg.com/vue@2.1.10/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-resource@1.2.0/dist/vue-resource.min.js"></script>
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                username: '{{ $user->username }}',
+                isFollowing: {{ $is_following ? 1 : 0 }},
+                followBtnTextArr: ['Follow', 'Unfollow'],
+                followBtnText: ''
+            },
+            methods: {
+                follows: function (event) {
+                    var csrfToken = Laravel.csrfToken;
+                    var url = this.isFollowing ? '/unfollows' : '/follows';
+                    this.$http.post(url, {
+                        'username': this.username
+                    }, {
+                        headers: {
+                            'X-CSRF-TOKEN': csrfToken
+                        }
+                    })
+                    .then(response => {
+                        var data = response.body;
+                        if (!data.status) {
+                            alert(data.message);
+                            return;
+                        }
+                        this.toggleFollowBtnText();
+                    });
+                },
+                toggleFollowBtnText: function() {
+                    this.isFollowing = (this.isFollowing + 1) % this.followBtnTextArr.length;
+                    this.setFollowBtnText();
+                },
+                setFollowBtnText: function() {
+                    this.followBtnText = this.followBtnTextArr[this.isFollowing];
+                }
+            },
+            mounted: function() {
+                this.setFollowBtnText();
+            }
+        });
+    </script>
 </body>
 </html>
