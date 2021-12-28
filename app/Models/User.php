@@ -31,4 +31,8 @@ public function following()
 {
     return $this->belongsToMany('App\Models\User', 'followers', 'follower_user_id');
 }
+public function followers()
+{
+    return $this->belongsToMany('App\Models\User', 'followers', 'follower_user_id');
+}
 }
